@@ -84,7 +84,12 @@ function App() {
               Scan Me
             </h1>
 
-            <QRCodeSVG value={url} size={size} />
+            <QRCodeSVG
+              value={url}
+              size={size}
+              bgColor="white"
+              fgColor="black"
+            />
           </div>
         </div>
       </div>
