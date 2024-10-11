@@ -29,17 +29,17 @@ function App() {
 
   return (
     <div className="h-dvh w-full flex flex-col font-sans">
-      <div className="flex justify-center p-10">
-        <h1 className="text-5xl font-bold">
+      <div className="flex justify-center p-4 md:p-10">
+        <h1 className="text-2xl md:text-5xl font-bold">
           <span className="text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text">
             Free
           </span>{" "}
           QR Code Generator
         </h1>
       </div>
-      <div className="flex flex-1 items-center justify-center gap-4 flex-col">
+      <div className="flex flex-1 items-center gap-4 flex-col">
         <div className="bg-gradient-to-tl p-2 from-primary to-secondary rounded-3xl shadow-2xl">
-          <div className="card bg-base-100">
+          <div className="card card-compact md:card-normal bg-base-100">
             <div className="card-body items-center gap-5">
               <input
                 placeholder="Type URL here"
