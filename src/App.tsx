@@ -1,22 +1,29 @@
-import { QRCodeCanvas } from "qrcode.react";
+import { QRCodeSVG } from "qrcode.react";
 import { useRef, useState } from "react";
+import * as htmlToImage from "html-to-image";
 
-function downloadStringAsFile(data: string, filename: string) {
+function downloadAsFile(href: string, filename: string) {
   const a = document.createElement("a");
   a.download = filename;
-  a.href = data;
+  a.href = href;
   a.click();
 }
 
 function App() {
   const [url, setUrl] = useState("");
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [size, setSize] = useState(128 * 2);
+  const divRef = useRef<HTMLDivElement>(null);
 
-  const downloadQRCode = () => {
-    const canvas = canvasRef.current;
-    if (canvas) {
-      const url = canvas.toDataURL("image/png");
-      downloadStringAsFile(url, "qrcode.png");
+  const downloadAsSvg = () => {
+    if (divRef.current) {
+      htmlToImage
+        .toSvg(divRef.current)
+        .then((dataUrl) => {
+          downloadAsFile(dataUrl, "qr-code.svg");
+        })
+        .catch((err) => {
+          console.error("Failed to convert div to SVG", err);
+        });
     }
   };
 
@@ -30,7 +37,7 @@ function App() {
           QR Code Generator
         </h1>
       </div>
-      <div className="flex flex-1 items-center justify-center">
+      <div className="flex flex-1 items-center justify-center gap-4 flex-col">
         <div className="bg-gradient-to-tl p-2 from-primary to-secondary rounded-3xl shadow-2xl">
           <div className="card bg-base-100">
             <div className="card-body items-center gap-5">
@@ -40,24 +47,44 @@ function App() {
                 value={url}
                 onChange={(ev) => setUrl(ev.target.value)}
               />
-              <div className="items-center text-center rounded bg-white">
-                <QRCodeCanvas
-                  ref={canvasRef}
-                  value={url}
-                  size={256}
-                  marginSize={1}
-                  className="rounded border"
+              <div>
+                <input
+                  type="range"
+                  min="128"
+                  max="384"
+                  value={size}
+                  className="range"
+                  step="128"
+                  onChange={(ev) => setSize(parseInt(ev.target.value))}
                 />
+                <div className="flex w-full justify-between px-2 text-xs">
+                  <span>|</span>
+                  <span>|</span>
+                  <span>|</span>
+                </div>
               </div>
+
               <div className="card-actions flex">
                 <button
                   className="btn btn-primary btn-wide"
-                  onClick={downloadQRCode}
+                  onClick={downloadAsSvg}
                 >
                   Download
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+        <div className="size-[384px] flex justify-center items-start">
+          <div
+            ref={divRef}
+            className="border-spacing-4 rounded bg-white p-2 flex flex-col border-black gap-2"
+          >
+            <h1 contentEditable className="text-white bg-black p-2 text-center">
+              Scan Me
+            </h1>
+
+            <QRCodeSVG value={url} size={size} />
           </div>
         </div>
       </div>
