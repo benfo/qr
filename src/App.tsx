@@ -2,6 +2,7 @@ import { useRef } from "react";
 import { ControlPanel } from "./components/control-panel";
 import { DownloadButton } from "./components/download-button";
 import { QRCodeGenerator } from "./components/qr-code-generator";
+import { QRCode } from "./components/qr-code";
 
 export default function App() {
   const qrRef = useRef<HTMLDivElement>(null);
