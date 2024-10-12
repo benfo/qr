@@ -14,11 +14,11 @@ export default function App() {
         </h1>
       </div>
       <div className="flex justify-center mt-10">
-        <div className="max-w-lg flex flex-col drop-shadow-lg rounded-lg overflow-hidden md:flex-row">
-          <div className="w bg-neutral text-neutral-content p-4">
+        <div className="flex flex-col drop-shadow-lg rounded-lg overflow-hidden md:flex-row">
+          <div className="bg-neutral p-4">
             <ControlPanel />
           </div>
-          <div className="size bg-base-200 p-4 flex justify-center">
+          <div className="bg-base-200 p-4 flex justify-center">
             <QRCodeGenerator ref={qrRef} />
           </div>
         </div>

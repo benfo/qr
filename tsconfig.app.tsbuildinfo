@@ -1,1 +1,1 @@
-{"root":["./src/app.tsx","./src/main.tsx","./src/vite-env.d.ts"],"version":"5.6.3"}
+{"root":["./src/app.tsx","./src/main.tsx","./src/vite-env.d.ts","./src/components/control-panel.tsx","./src/components/download-button.tsx","./src/components/qr-code-generator.tsx","./src/store/rq-code-store.ts"],"version":"5.6.3"}

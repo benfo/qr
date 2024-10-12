@@ -7,7 +7,7 @@ export const QRCodeGenerator = forwardRef<HTMLDivElement>((props, ref) => {
   const url = useQRCodeStore((state) => state.url);
 
   return (
-    <div className="overflow-hidden size-[128px]">
+    <div className="overflow-hidden size-[256px]">
       <div ref={ref} {...props}>
         <QRCodeSVG
           value={url}
