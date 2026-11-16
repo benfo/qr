@@ -1,9 +1,12 @@
 import { QRCodeSVG } from "qrcode.react";
 
-import { useQRCodeStore } from "../store/rq-code-store";
+import { getPreset } from "../presets";
+import { useEncodedValue, useQRCodeStore } from "../store/rq-code-store";
 import { forwardRef } from "react";
 
 const PLACEHOLDER = "https://benfo.github.io/qr/";
+const SIZE = 1000;
+const ICON_SIZE = 240;
 
 // Printer's crop marks at each corner of the sheet: a nod to where QR codes end up.
 const cropMarks = [
@@ -13,13 +16,29 @@ const cropMarks = [
   "-bottom-3 -right-3 border-b border-r",
 ];
 
+// Checkerboard shown behind a transparent code; it's on the sheet, not the export.
+const checker = {
+  backgroundColor: "#fff",
+  backgroundImage:
+    "conic-gradient(#e6e7ea 25%, transparent 0 50%, #e6e7ea 0 75%, transparent 0)",
+  backgroundSize: "16px 16px",
+};
+
 export const QRCodeGenerator = forwardRef<HTMLDivElement>((props, ref) => {
-  const url = useQRCodeStore((state) => state.url);
-  const isEmpty = url.length === 0;
+  const value = useEncodedValue();
+  const { presetId, color, transparent, showIcon } = useQRCodeStore();
+  const isEmpty = value.length === 0;
+
+  const iconSrc = showIcon
+    ? `data:image/svg+xml;utf8,${encodeURIComponent(getPreset(presetId).icon(color))}`
+    : undefined;
 
   return (
-    <figure className="flex flex-col gap-4">
-      <div className="relative bg-white p-6 ring-1 ring-ink/10 sm:p-8">
+    <figure className="flex flex-col gap-4 self-center">
+      <div
+        className="relative bg-white p-6 ring-1 ring-ink/10 sm:p-8"
+        style={transparent ? checker : undefined}
+      >
         {cropMarks.map((position) => (
           <span
             key={position}
@@ -34,10 +53,23 @@ export const QRCodeGenerator = forwardRef<HTMLDivElement>((props, ref) => {
         >
           <div ref={ref} {...props}>
             <QRCodeSVG
-              value={isEmpty ? PLACEHOLDER : url}
+              value={isEmpty ? PLACEHOLDER : value}
               marginSize={1}
-              size={1000}
-              title={isEmpty ? undefined : `QR code for ${url}`}
+              size={SIZE}
+              fgColor={color}
+              bgColor={transparent ? "transparent" : "#FFFFFF"}
+              level={iconSrc ? "H" : "L"}
+              imageSettings={
+                iconSrc
+                  ? {
+                      src: iconSrc,
+                      width: ICON_SIZE,
+                      height: ICON_SIZE,
+                      excavate: true,
+                    }
+                  : undefined
+              }
+              title={isEmpty ? undefined : `QR code for ${value}`}
               style={{
                 width: "100%",
                 height: "100%",
@@ -47,7 +79,10 @@ export const QRCodeGenerator = forwardRef<HTMLDivElement>((props, ref) => {
         </div>
       </div>
       <figcaption className="w-0 min-w-full truncate font-mono text-meta text-ink-2">
-        {isEmpty ? "Waiting for a link or text" : url}
+        {isEmpty
+          ? "Waiting for details"
+          : // Keep Wi-Fi passwords off the screen; they're still in the code.
+            value.replace(/;P:(?:\\.|[^;\\])+;/, ";P:••••••;")}
       </figcaption>
     </figure>
   );

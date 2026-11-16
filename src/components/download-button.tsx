@@ -1,5 +1,5 @@
 import * as htmlToImage from "html-to-image";
-import { useQRCodeStore } from "../store/rq-code-store";
+import { useEncodedValue } from "../store/rq-code-store";
 
 export interface DownloadButtonProps {
   qrRef: React.RefObject<HTMLDivElement>;
@@ -19,7 +19,7 @@ const base =
 
 export const DownloadButton = (props: DownloadButtonProps) => {
   const { qrRef } = props;
-  const isEmpty = useQRCodeStore((state) => state.url.length === 0);
+  const isEmpty = useEncodedValue().length === 0;
 
   const downloadAsSvg = () => {
     const svg = qrRef.current?.querySelector("svg");
