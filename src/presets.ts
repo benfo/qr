@@ -20,8 +20,10 @@ export interface Preset {
   defaults?: Record<string, string>;
   /** Builds the string to encode. Returns "" while required fields are empty. */
   encode: (values: Record<string, string>) => string;
-  /** Centre icon as SVG markup; `color` is the QR colour. */
+  /** Centre icon as SVG markup, drawn in `color`. */
   icon: (color: string) => string;
+  /** The icon's default colour; without one it follows the code colour. */
+  iconColor?: string;
 }
 
 // Icons are drawn inside a 24×24 box with a 3-unit margin so the excavated
@@ -35,6 +37,7 @@ const stroke = (color: string, paths: string) =>
   );
 
 const digits = (value = "") => value.replace(/[^\d]/g, "");
+
 
 const query = (params: Record<string, string | undefined>) => {
   const parts = Object.entries(params)
@@ -82,8 +85,8 @@ export const PRESETS: Preset[] = [
       digits(v.phone)
         ? `https://wa.me/${digits(v.phone)}${query({ text: v.message })}`
         : "",
-    icon: () =>
-      svg(`<path fill="#${siWhatsapp.hex}" d="${siWhatsapp.path}"/>`),
+    icon: (c) => svg(`<path fill="${c}" d="${siWhatsapp.path}"/>`),
+    iconColor: `#${siWhatsapp.hex}`,
   },
   {
     id: "email",
@@ -168,3 +171,4 @@ export const PRESETS: Preset[] = [
 ];
 
 export const getPreset = (id: PresetId) => PRESETS.find((p) => p.id === id)!;
+

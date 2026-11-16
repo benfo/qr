@@ -1,7 +1,11 @@
 import { QRSvg } from "./qr-svg";
 
 import { getPreset } from "../presets";
-import { useEncodedValue, useQRCodeStore } from "../store/rq-code-store";
+import {
+  useEncodedValue,
+  useIconColor,
+  useQRCodeStore,
+} from "../store/rq-code-store";
 import { forwardRef } from "react";
 
 const PLACEHOLDER = "https://benfo.github.io/qr/";
@@ -35,10 +39,11 @@ export const QRCodeGenerator = forwardRef<HTMLDivElement>((props, ref) => {
     eyeFrame,
     eyeCentre,
   } = useQRCodeStore();
+  const iconColor = useIconColor();
   const isEmpty = value.length === 0;
 
   const iconSrc = showIcon
-    ? `data:image/svg+xml;utf8,${encodeURIComponent(getPreset(presetId).icon(color))}`
+    ? `data:image/svg+xml;utf8,${encodeURIComponent(getPreset(presetId).icon(iconColor))}`
     : undefined;
 
   return (

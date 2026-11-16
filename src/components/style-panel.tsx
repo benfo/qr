@@ -1,10 +1,6 @@
 import { useQRCodeStore } from "../store/rq-code-store";
-import {
-  DotStyle,
-  eyeCentrePath,
-  eyeFramePath,
-  modulePath,
-} from "./qr-svg";
+import { DotStyle, eyeCentrePath, eyeFramePath, modulePath } from "./qr-svg";
+import { IconColorPicker } from "./icon-color-picker";
 import { focusRing, Label, Segmented } from "./ui";
 
 /** A small preview drawn with the same paths as the real code. */
@@ -31,8 +27,8 @@ const samplePath = (style: DotStyle) =>
     row.map((cell, c) =>
       cell
         ? modulePath(c, r, style, (dr, dc) => !!SAMPLE[r + dr]?.[c + dc])
-        : ""
-    )
+        : "",
+    ),
   ).join("");
 
 const dotOptions = (["square", "rounded", "dots"] as const).map((value) => ({
@@ -71,7 +67,6 @@ const centreOptions = EYES.map((value) => ({
   ),
 }));
 
-
 // WCAG relative luminance, used to warn when a colour is too light to scan.
 const luminance = (hex: string) => {
   const [r, g, b] = [1, 3, 5].map((i) => {
@@ -82,6 +77,28 @@ const luminance = (hex: string) => {
 };
 
 const contrastOnWhite = (hex: string) => 1.05 / (luminance(hex) + 0.05);
+
+const ColorInput = (props: {
+  id: string;
+  value: string;
+  onChange: (value: string) => void;
+}) => (
+  <label className="flex h-10 cursor-pointer items-center gap-2 self-start rounded-md border border-ink/15 pl-2 pr-4 hover:bg-ink/5 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-accent">
+    <span
+      aria-hidden
+      className="size-6 rounded-sm ring-1 ring-inset ring-ink/15"
+      style={{ backgroundColor: props.value }}
+    />
+    <span className="font-mono text-meta uppercase">{props.value}</span>
+    <input
+      id={props.id}
+      type="color"
+      value={props.value}
+      onChange={(ev) => props.onChange(ev.target.value)}
+      className="sr-only"
+    />
+  </label>
+);
 
 export const StylePanel = () => {
   const {
@@ -112,21 +129,7 @@ export const StylePanel = () => {
       <div className="flex flex-wrap gap-x-8 gap-y-4">
         <div className="flex flex-col gap-2">
           <Label htmlFor="qr-color">Colour</Label>
-          <label className="flex h-10 cursor-pointer items-center gap-2 rounded-md border border-ink/15 pl-2 pr-4 hover:bg-ink/5 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-accent">
-            <span
-              aria-hidden
-              className="size-6 rounded-sm ring-1 ring-inset ring-ink/15"
-              style={{ backgroundColor: color }}
-            />
-            <span className="font-mono text-meta uppercase">{color}</span>
-            <input
-              id="qr-color"
-              type="color"
-              value={color}
-              onChange={(ev) => setColor(ev.target.value)}
-              className="sr-only"
-            />
-          </label>
+          <ColorInput id="qr-color" value={color} onChange={setColor} />
         </div>
 
         <div className="flex flex-col gap-2">
@@ -174,15 +177,18 @@ export const StylePanel = () => {
           />
         </div>
       </div>
-      <label className="flex cursor-pointer items-center gap-2 self-start">
-        <input
-          type="checkbox"
-          checked={showIcon}
-          onChange={(ev) => setShowIcon(ev.target.checked)}
-          className={`size-5 cursor-pointer accent-[rgb(var(--ink))] ${focusRing}`}
-        />
-        <span>Show an icon in the centre</span>
-      </label>
+      <div className="flex flex-col gap-4">
+        <label className="flex cursor-pointer items-center gap-2 self-start">
+          <input
+            type="checkbox"
+            checked={showIcon}
+            onChange={(ev) => setShowIcon(ev.target.checked)}
+            className={`size-5 cursor-pointer accent-[rgb(var(--ink))] ${focusRing}`}
+          />
+          <span>Show an icon in the centre</span>
+        </label>
+        {showIcon && <IconColorPicker />}
+      </div>
       {hint && (
         <p role="status" className="max-w-xs text-meta text-ink-2">
           {hint}
