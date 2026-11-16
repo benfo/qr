@@ -1,3 +1,32 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  :root {
+    --page: 242 243 245;
+    --surface: 255 255 255;
+    --ink: 22 24 29;
+    --ink-2: 91 97 110;
+    --accent: 255 90 31;
+    color-scheme: light;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --page: 17 19 23;
+      --surface: 26 29 35;
+      --ink: 236 237 239;
+      --ink-2: 154 160 171;
+      color-scheme: dark;
+    }
+  }
+
+  body {
+    @apply bg-page text-ink font-sans text-body antialiased;
+  }
+
+  h1 {
+    text-wrap: balance;
+  }
+}

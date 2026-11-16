@@ -1,8 +1,11 @@
 import * as htmlToImage from "html-to-image";
+import { useQRCodeStore } from "../store/rq-code-store";
 
 export interface DownloadButtonProps {
   qrRef: React.RefObject<HTMLDivElement>;
 }
+
+const EXPORT_SIZE = 1024;
 
 function downloadAsFile(href: string, filename: string) {
   const a = document.createElement("a");
@@ -11,8 +14,12 @@ function downloadAsFile(href: string, filename: string) {
   a.click();
 }
 
+const base =
+  "h-12 rounded-md px-6 font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-page disabled:cursor-not-allowed";
+
 export const DownloadButton = (props: DownloadButtonProps) => {
   const { qrRef } = props;
+  const isEmpty = useQRCodeStore((state) => state.url.length === 0);
 
   const downloadAsSvg = () => {
     if (qrRef.current) {
@@ -30,7 +37,9 @@ export const DownloadButton = (props: DownloadButtonProps) => {
   const downloadAsPng = () => {
     if (qrRef.current) {
       htmlToImage
-        .toPng(qrRef.current)
+        .toPng(qrRef.current, {
+          pixelRatio: EXPORT_SIZE / qrRef.current.offsetWidth,
+        })
         .then((dataUrl) => {
           downloadAsFile(dataUrl, "qr-code.png");
         })
@@ -41,12 +50,20 @@ export const DownloadButton = (props: DownloadButtonProps) => {
   };
 
   return (
-    <div className="flex gap-2 flex-col md:flex-row">
-      <button className="btn btn-secondary" onClick={downloadAsSvg}>
-        Download as SVG
+    <div className="flex flex-col gap-2 sm:flex-row">
+      <button
+        className={`${base} bg-accent text-[#16181D] hover:brightness-95 disabled:bg-ink/10 disabled:text-ink-2 disabled:hover:brightness-100`}
+        onClick={downloadAsPng}
+        disabled={isEmpty}
+      >
+        Download PNG
       </button>
-      <button className="btn btn-accent" onClick={downloadAsPng}>
-        Download as PNG
+      <button
+        className={`${base} border border-ink/15 text-ink hover:bg-ink/5 disabled:text-ink-2 disabled:hover:bg-transparent`}
+        onClick={downloadAsSvg}
+        disabled={isEmpty}
+      >
+        Download SVG
       </button>
     </div>
   );
