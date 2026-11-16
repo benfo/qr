@@ -11,6 +11,8 @@ export interface PresetField {
   options?: { value: string; label: string }[];
   optional?: boolean;
   hidden?: (values: Record<string, string>) => boolean;
+  /** Returns what's wrong with a non-empty value, or nothing when it's fine. */
+  validate?: (value: string) => string | undefined;
 }
 
 export interface Preset {
@@ -38,6 +40,21 @@ const stroke = (color: string, paths: string) =>
 
 const digits = (value = "") => value.replace(/[^\d]/g, "");
 
+// International format, so the code works from any country: + then 8–15 digits.
+const checkPhone = (value: string) => {
+  const v = value.trim();
+  if (!v.startsWith("+"))
+    return "Start with + and the country code, like +27 82 123 4567.";
+  if (/[^\d\s()+-]/.test(v.slice(1)) || v.indexOf("+", 1) !== -1)
+    return "Use only digits, spaces, dashes and brackets.";
+  const n = digits(v).length;
+  if (n < 8 || n > 15) return "That number looks too short or too long.";
+};
+
+const checkEmail = (value: string) =>
+  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())
+    ? undefined
+    : "Enter a full email address, like hello@example.com.";
 
 const query = (params: Record<string, string | undefined>) => {
   const parts = Object.entries(params)
@@ -72,6 +89,7 @@ export const PRESETS: Preset[] = [
         label: "Phone number, with country code",
         placeholder: "+27 82 123 4567",
         inputType: "tel",
+        validate: checkPhone,
       },
       {
         key: "message",
@@ -97,6 +115,7 @@ export const PRESETS: Preset[] = [
         label: "Email address",
         placeholder: "hello@example.com",
         inputType: "email",
+        validate: checkEmail,
       },
       { key: "subject", label: "Subject", optional: true },
       { key: "body", label: "Message", kind: "textarea", optional: true },
@@ -120,6 +139,7 @@ export const PRESETS: Preset[] = [
         label: "Phone number",
         placeholder: "+27 82 123 4567",
         inputType: "tel",
+        validate: checkPhone,
       },
     ],
     encode: (v) => {
@@ -172,3 +192,12 @@ export const PRESETS: Preset[] = [
 
 export const getPreset = (id: PresetId) => PRESETS.find((p) => p.id === id)!;
 
+/** What's wrong with a field's value, if anything. Empty values are fine. */
+export const fieldProblem = (field: PresetField, value = "") =>
+  value.trim() ? field.validate?.(value) : undefined;
+
+/** True when any field the user can see has a problem. */
+export const hasProblem = (preset: Preset, values: Record<string, string>) =>
+  preset.fields.some(
+    (f) => !f.hidden?.(values) && fieldProblem(f, values[f.key])
+  );

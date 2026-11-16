@@ -11,6 +11,7 @@ export default {
         ink: token("ink"),
         "ink-2": token("ink-2"),
         accent: token("accent"),
+        danger: token("danger"),
       },
       fontFamily: {
         sans: ['"IBM Plex Sans"', "system-ui", "sans-serif"],

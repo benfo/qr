@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { getPreset, PRESETS, PresetId } from "../presets";
+import { getPreset, hasProblem, PRESETS, PresetId } from "../presets";
 import type { DotStyle, EyeStyle } from "../components/qr-svg";
 
 type Values = Record<string, string>;
@@ -72,8 +72,17 @@ export const useQRCodeStore = create<QRCodeState>((set) => ({
 
 /** The string that ends up inside the QR code. */
 export const useEncodedValue = () =>
+  useQRCodeStore((state) => {
+    const preset = getPreset(state.presetId);
+    const values = state.values[state.presetId];
+    // No code for details we know are wrong; it would scan but not work.
+    return hasProblem(preset, values) ? "" : preset.encode(values);
+  });
+
+/** True when a field the user can see needs fixing. */
+export const useHasProblem = () =>
   useQRCodeStore((state) =>
-    getPreset(state.presetId).encode(state.values[state.presetId])
+    hasProblem(getPreset(state.presetId), state.values[state.presetId])
   );
 
 /** "brand" uses the icon's own colour (WhatsApp green), else the code's. */

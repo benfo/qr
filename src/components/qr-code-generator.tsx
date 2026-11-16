@@ -3,6 +3,7 @@ import { QRSvg } from "./qr-svg";
 import { getPreset } from "../presets";
 import {
   useEncodedValue,
+  useHasProblem,
   useIconColor,
   useQRCodeStore,
 } from "../store/rq-code-store";
@@ -40,6 +41,7 @@ export const QRCodeGenerator = forwardRef<HTMLDivElement>((props, ref) => {
     eyeCentre,
   } = useQRCodeStore();
   const iconColor = useIconColor();
+  const problem = useHasProblem();
   const isEmpty = value.length === 0;
 
   const iconSrc = showIcon
@@ -81,7 +83,9 @@ export const QRCodeGenerator = forwardRef<HTMLDivElement>((props, ref) => {
       </div>
       <figcaption className="w-0 min-w-full truncate font-mono text-meta text-ink-2">
         {isEmpty
-          ? "Waiting for details"
+          ? problem
+            ? "Check the details"
+            : "Waiting for details"
           : // Keep Wi-Fi passwords off the screen; they're still in the code.
             value.replace(/;P:(?:\\.|[^;\\])+;/, ";P:••••••;")}
       </figcaption>
