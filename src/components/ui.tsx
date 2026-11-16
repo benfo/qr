@@ -23,7 +23,8 @@ export const Label = (props: {
 interface SegmentedProps<T extends string> {
   label: string;
   value: T;
-  options: { value: T; label: string }[];
+  /** With an icon, the option shows only the icon; the label names it. */
+  options: { value: T; label: string; icon?: ReactNode }[];
   onChange: (value: T) => void;
   wrap?: boolean;
 }
@@ -34,7 +35,9 @@ export function Segmented<T extends string>(props: SegmentedProps<T>) {
     <div
       role="radiogroup"
       aria-label={props.label}
-      className={`flex gap-2 ${props.wrap ? "flex-wrap" : ""}`}
+      className={`flex ${props.options.some((o) => o.icon) ? "gap-1" : "gap-2"} ${
+        props.wrap ? "flex-wrap" : ""
+      }`}
     >
       {props.options.map((option) => {
         const selected = option.value === props.value;
@@ -44,14 +47,18 @@ export function Segmented<T extends string>(props: SegmentedProps<T>) {
             type="button"
             role="radio"
             aria-checked={selected}
+            aria-label={option.icon ? option.label : undefined}
+            title={option.icon ? option.label : undefined}
             onClick={() => props.onChange(option.value)}
-            className={`h-10 rounded-md px-4 text-body font-medium transition-colors ${focusRing} ${
+            className={`h-10 rounded-md text-body font-medium transition-colors ${focusRing} ${
+              option.icon ? "grid w-10 place-items-center" : "px-4"
+            } ${
               selected
                 ? "bg-ink text-page"
                 : "border border-ink/15 text-ink hover:bg-ink/5"
             }`}
           >
-            {option.label}
+            {option.icon ?? option.label}
           </button>
         );
       })}

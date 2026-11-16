@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { getPreset, PRESETS, PresetId } from "../presets";
-import type { DotStyle } from "../components/qr-svg";
+import type { DotStyle, EyeStyle } from "../components/qr-svg";
 
 type Values = Record<string, string>;
 
@@ -11,12 +11,16 @@ interface QRCodeState {
   transparent: boolean;
   showIcon: boolean;
   dotStyle: DotStyle;
+  eyeFrame: EyeStyle;
+  eyeCentre: EyeStyle;
   setPreset: (id: PresetId) => void;
   setValue: (key: string, value: string) => void;
   setColor: (color: string) => void;
   setTransparent: (transparent: boolean) => void;
   setShowIcon: (showIcon: boolean) => void;
   setDotStyle: (dotStyle: DotStyle) => void;
+  setEyeFrame: (eyeFrame: EyeStyle) => void;
+  setEyeCentre: (eyeCentre: EyeStyle) => void;
 }
 
 const initialValues = Object.fromEntries(
@@ -30,6 +34,8 @@ export const useQRCodeStore = create<QRCodeState>((set) => ({
   transparent: false,
   showIcon: false,
   dotStyle: "square",
+  eyeFrame: "square",
+  eyeCentre: "square",
   setPreset: (presetId) => set({ presetId }),
   setValue: (key, value) =>
     set((state) => ({
@@ -42,6 +48,8 @@ export const useQRCodeStore = create<QRCodeState>((set) => ({
   setTransparent: (transparent) => set({ transparent }),
   setShowIcon: (showIcon) => set({ showIcon }),
   setDotStyle: (dotStyle) => set({ dotStyle }),
+  setEyeFrame: (eyeFrame) => set({ eyeFrame }),
+  setEyeCentre: (eyeCentre) => set({ eyeCentre }),
 }));
 
 /** The string that ends up inside the QR code. */

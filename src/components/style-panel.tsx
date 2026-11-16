@@ -1,5 +1,76 @@
 import { useQRCodeStore } from "../store/rq-code-store";
+import {
+  DotStyle,
+  eyeCentrePath,
+  eyeFramePath,
+  modulePath,
+} from "./qr-svg";
 import { focusRing, Label, Segmented } from "./ui";
+
+/** A small preview drawn with the same paths as the real code. */
+const Glyph = (props: { size: number; children: React.ReactNode }) => (
+  <svg
+    aria-hidden
+    viewBox={`0 0 ${props.size} ${props.size}`}
+    className="size-6"
+    fill="currentColor"
+    fillRule="evenodd"
+  >
+    {props.children}
+  </svg>
+);
+
+// An L of three modules plus a loose one, so "rounded" shows how runs join.
+const SAMPLE = [
+  [1, 1, 0],
+  [1, 0, 0],
+  [0, 0, 1],
+];
+const samplePath = (style: DotStyle) =>
+  SAMPLE.flatMap((row, r) =>
+    row.map((cell, c) =>
+      cell
+        ? modulePath(c, r, style, (dr, dc) => !!SAMPLE[r + dr]?.[c + dc])
+        : ""
+    )
+  ).join("");
+
+const dotOptions = (["square", "rounded", "dots"] as const).map((value) => ({
+  value,
+  label: { square: "Square", rounded: "Rounded", dots: "Dots" }[value],
+  icon: (
+    <Glyph size={3}>
+      <path d={samplePath(value)} />
+    </Glyph>
+  ),
+}));
+
+const EYE_LABELS = { square: "Square", rounded: "Rounded", circle: "Circle" };
+const EYES = ["square", "rounded", "circle"] as const;
+
+// Each eye picker draws the whole eye, with the part it doesn't set faded.
+const frameOptions = EYES.map((value) => ({
+  value,
+  label: EYE_LABELS[value],
+  icon: (
+    <Glyph size={7}>
+      <path d={eyeFramePath(0, 0, value)} />
+      <path d={eyeCentrePath(0, 0, "square")} opacity={0.35} />
+    </Glyph>
+  ),
+}));
+
+const centreOptions = EYES.map((value) => ({
+  value,
+  label: EYE_LABELS[value],
+  icon: (
+    <Glyph size={7}>
+      <path d={eyeFramePath(0, 0, "square")} opacity={0.35} />
+      <path d={eyeCentrePath(0, 0, value)} />
+    </Glyph>
+  ),
+}));
+
 
 // WCAG relative luminance, used to warn when a colour is too light to scan.
 const luminance = (hex: string) => {
@@ -22,6 +93,10 @@ export const StylePanel = () => {
     setShowIcon,
     dotStyle,
     setDotStyle,
+    eyeFrame,
+    setEyeFrame,
+    eyeCentre,
+    setEyeCentre,
   } = useQRCodeStore();
 
   const tooLight = contrastOnWhite(color) < 4;
@@ -66,18 +141,36 @@ export const StylePanel = () => {
             onChange={(v) => setTransparent(v === "transparent")}
           />
         </div>
+      </div>
 
+      <div className="flex flex-wrap gap-x-3 gap-y-4">
         <div className="flex flex-col gap-2">
           <Label>Dots</Label>
           <Segmented
             label="Dots"
             value={dotStyle}
-            options={[
-              { value: "square", label: "Square" },
-              { value: "rounded", label: "Rounded" },
-              { value: "dots", label: "Dots" },
-            ]}
+            options={dotOptions}
             onChange={setDotStyle}
+          />
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <Label>Corner frame</Label>
+          <Segmented
+            label="Corner frame"
+            value={eyeFrame}
+            options={frameOptions}
+            onChange={setEyeFrame}
+          />
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <Label>Corner centre</Label>
+          <Segmented
+            label="Corner centre"
+            value={eyeCentre}
+            options={centreOptions}
+            onChange={setEyeCentre}
           />
         </div>
       </div>

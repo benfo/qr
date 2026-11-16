@@ -26,8 +26,15 @@ const checker = {
 
 export const QRCodeGenerator = forwardRef<HTMLDivElement>((props, ref) => {
   const value = useEncodedValue();
-  const { presetId, color, transparent, showIcon, dotStyle } =
-    useQRCodeStore();
+  const {
+    presetId,
+    color,
+    transparent,
+    showIcon,
+    dotStyle,
+    eyeFrame,
+    eyeCentre,
+  } = useQRCodeStore();
   const isEmpty = value.length === 0;
 
   const iconSrc = showIcon
@@ -58,6 +65,8 @@ export const QRCodeGenerator = forwardRef<HTMLDivElement>((props, ref) => {
               color={color}
               background={transparent ? undefined : "#FFFFFF"}
               dotStyle={dotStyle}
+              eyeFrame={eyeFrame}
+              eyeCentre={eyeCentre}
               icon={iconSrc ? { src: iconSrc, ratio: ICON_RATIO } : undefined}
               title={isEmpty ? undefined : `QR code for ${value}`}
               style={{ width: "100%", height: "100%" }}

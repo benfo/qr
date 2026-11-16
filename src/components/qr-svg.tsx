@@ -2,6 +2,7 @@ import QRCode from "qrcode";
 import { SVGProps, useMemo } from "react";
 
 export type DotStyle = "square" | "rounded" | "dots";
+export type EyeStyle = "square" | "rounded" | "circle";
 
 export interface QRSvgProps
   extends Omit<SVGProps<SVGSVGElement>, "children" | "viewBox"> {
@@ -10,6 +11,9 @@ export interface QRSvgProps
   /** Background colour; omit for a transparent code. */
   background?: string;
   dotStyle: DotStyle;
+  /** Shape of the three corner eyes' outer ring and inner square. */
+  eyeFrame: EyeStyle;
+  eyeCentre: EyeStyle;
   /** Image drawn in the centre; the modules under it are cleared. */
   icon?: { src: string; ratio: number };
   title?: string;
@@ -24,7 +28,7 @@ const isFinder = (size: number, r: number, c: number) =>
   (r >= size - FINDER && c < FINDER);
 
 /** One module at (x, y) as a path segment, rounding only its free corners. */
-function modulePath(
+export function modulePath(
   x: number,
   y: number,
   style: DotStyle,
@@ -38,7 +42,7 @@ function modulePath(
 
   // Rounded: a corner rounds when neither neighbour touching it is on,
   // so runs of modules join up into smooth blobs.
-  const r = 0.45;
+  const r = 0.5;
   const up = on(-1, 0);
   const down = on(1, 0);
   const left = on(0, -1);
@@ -59,16 +63,53 @@ function modulePath(
   );
 }
 
-/** The three corner eyes: a 7×7 ring around a 3×3 centre. */
-function finderPath(x: number, y: number) {
-  return (
-    `M${x} ${y}h7v7h-7z M${x + 1} ${y + 1}v5h5v-5z` +
-    ` M${x + 2} ${y + 2}h3v3h-3z`
+/** A w×w square at (x, y) with corner radius r (0 for sharp corners). */
+const roundedSquare = (x: number, y: number, w: number, r: number) =>
+  r === 0
+    ? `M${x} ${y}h${w}v${w}h${-w}z`
+    : `M${x + r} ${y}h${w - 2 * r}a${r} ${r} 0 0 1 ${r} ${r}` +
+      `v${w - 2 * r}a${r} ${r} 0 0 1 ${-r} ${r}` +
+      `h${-(w - 2 * r)}a${r} ${r} 0 0 1 ${-r} ${-r}` +
+      `v${-(w - 2 * r)}a${r} ${r} 0 0 1 ${r} ${-r}z`;
+
+/** A w×w square in the given eye style; circle means a full circle. */
+const eyeShape = (x: number, y: number, w: number, style: EyeStyle) =>
+  roundedSquare(
+    x,
+    y,
+    w,
+    style === "circle" ? w / 2 : style === "rounded" ? w * 0.3 : 0
   );
-}
+
+/** A corner eye's 7×7 ring; the hole keeps it 1 module thick in every style. */
+export const eyeFramePath = (x: number, y: number, style: EyeStyle) =>
+  eyeShape(x, y, 7, style) +
+  roundedSquare(
+    x + 1,
+    y + 1,
+    5,
+    style === "circle" ? 2.5 : style === "rounded" ? 7 * 0.3 - 1 : 0
+  );
+
+/** A corner eye's 3×3 centre, for an eye whose frame starts at (x, y). */
+export const eyeCentrePath = (x: number, y: number, style: EyeStyle) =>
+  eyeShape(x + 2, y + 2, 3, style);
+
+const finderPath = (x: number, y: number, frame: EyeStyle, centre: EyeStyle) =>
+  eyeFramePath(x, y, frame) + eyeCentrePath(x, y, centre);
 
 export function QRSvg(props: QRSvgProps) {
-  const { value, color, background, dotStyle, icon, title, ...rest } = props;
+  const {
+    value,
+    color,
+    background,
+    dotStyle,
+    eyeFrame,
+    eyeCentre,
+    icon,
+    title,
+    ...rest
+  } = props;
 
   const { size, path, iconBox } = useMemo(() => {
     const { modules } = QRCode.create(value, {
@@ -108,21 +149,26 @@ export function QRSvg(props: QRSvgProps) {
         );
       }
     }
+    const far = n - FINDER + MARGIN;
     d +=
-      finderPath(MARGIN, MARGIN) +
-      finderPath(n - FINDER + MARGIN, MARGIN) +
-      finderPath(MARGIN, n - FINDER + MARGIN);
+      finderPath(MARGIN, MARGIN, eyeFrame, eyeCentre) +
+      finderPath(far, MARGIN, eyeFrame, eyeCentre) +
+      finderPath(MARGIN, far, eyeFrame, eyeCentre);
 
     return { size: total, path: d, iconBox: box };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value, dotStyle, icon?.src, icon?.ratio]);
+  }, [value, dotStyle, eyeFrame, eyeCentre, icon?.src, icon?.ratio]);
 
   return (
     <svg
       {...rest}
       xmlns="http://www.w3.org/2000/svg"
       viewBox={`0 0 ${size} ${size}`}
-      shapeRendering={dotStyle === "square" ? "crispEdges" : undefined}
+      shapeRendering={
+        dotStyle === "square" && eyeFrame === "square" && eyeCentre === "square"
+          ? "crispEdges"
+          : undefined
+      }
       role="img"
     >
       {title && <title>{title}</title>}
