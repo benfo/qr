@@ -22,16 +22,21 @@ export const DownloadButton = (props: DownloadButtonProps) => {
   const isEmpty = useQRCodeStore((state) => state.url.length === 0);
 
   const downloadAsSvg = () => {
-    if (qrRef.current) {
-      htmlToImage
-        .toSvg(qrRef.current)
-        .then((dataUrl) => {
-          downloadAsFile(dataUrl, "qr-code.svg");
-        })
-        .catch((err) => {
-          console.error("Failed to convert div to SVG", err);
-        });
-    }
+    const svg = qrRef.current?.querySelector("svg");
+    if (!svg) return;
+
+    const clone = svg.cloneNode(true) as SVGSVGElement;
+    clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    clone.setAttribute("width", String(EXPORT_SIZE));
+    clone.setAttribute("height", String(EXPORT_SIZE));
+    clone.removeAttribute("style");
+
+    const markup = new XMLSerializer().serializeToString(clone);
+    const href = URL.createObjectURL(
+      new Blob([markup], { type: "image/svg+xml" })
+    );
+    downloadAsFile(href, "qr-code.svg");
+    URL.revokeObjectURL(href);
   };
 
   const downloadAsPng = () => {
