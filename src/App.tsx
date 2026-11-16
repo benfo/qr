@@ -23,7 +23,7 @@ export default function App() {
         </div>
 
         {/* The code itself and how it looks: the same for every type. */}
-        <div className="flex flex-col gap-8 justify-self-center">
+        <div className="flex w-full max-w-[26rem] flex-col gap-8 justify-self-center">
           <QRCodeGenerator ref={qrRef} />
           <StylePanel />
           <DownloadButton qrRef={qrRef} />
