@@ -42,6 +42,7 @@ export const QRCodeGenerator = forwardRef<HTMLDivElement>((props, ref) => {
   } = useQRCodeStore();
   const iconColor = useIconColor();
   const problem = useHasProblem();
+  const values = useQRCodeStore((state) => state.values[state.presetId]);
   const isEmpty = value.length === 0;
 
   const iconSrc = showIcon
@@ -81,13 +82,17 @@ export const QRCodeGenerator = forwardRef<HTMLDivElement>((props, ref) => {
           </div>
         </div>
       </div>
-      <figcaption className="w-0 min-w-full truncate font-mono text-meta text-ink-2">
+      <figcaption
+        className={`w-0 min-w-full truncate text-meta text-ink-2 ${
+          // Links read best as typed; everything else is a sentence.
+          presetId === "link" && !isEmpty ? "font-mono" : ""
+        }`}
+      >
         {isEmpty
           ? problem
             ? "Check the details"
             : "Waiting for details"
-          : // Keep Wi-Fi passwords off the screen; they're still in the code.
-            value.replace(/;P:(?:\\.|[^;\\])+;/, ";P:••••••;")}
+          : getPreset(presetId).describe(values)}
       </figcaption>
     </figure>
   );

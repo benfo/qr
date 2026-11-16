@@ -20,6 +20,8 @@ export interface Preset {
   label: string;
   fields: PresetField[];
   defaults?: Record<string, string>;
+  /** What scanning the code does, in plain words, for the caption. */
+  describe: (values: Record<string, string>) => string;
   /** Builds the string to encode. Returns "" while required fields are empty. */
   encode: (values: Record<string, string>) => string;
   /** Centre icon as SVG markup, drawn in `color`. */
@@ -74,6 +76,7 @@ export const PRESETS: Preset[] = [
       { key: "text", label: "Link or text", placeholder: "https://example.com" },
     ],
     encode: (v) => v.text ?? "",
+    describe: (v) => v.text ?? "",
     icon: (c) =>
       stroke(
         c,
@@ -99,6 +102,7 @@ export const PRESETS: Preset[] = [
         optional: true,
       },
     ],
+    describe: (v) => `Opens a WhatsApp chat with ${v.phone?.trim()}`,
     encode: (v) =>
       digits(v.phone)
         ? `https://wa.me/${digits(v.phone)}${query({ text: v.message })}`
@@ -120,6 +124,7 @@ export const PRESETS: Preset[] = [
       { key: "subject", label: "Subject", optional: true },
       { key: "body", label: "Message", kind: "textarea", optional: true },
     ],
+    describe: (v) => `Starts an email to ${v.to?.trim()}`,
     encode: (v) =>
       v.to?.trim()
         ? `mailto:${v.to.trim()}${query({ subject: v.subject, body: v.body })}`
@@ -142,6 +147,7 @@ export const PRESETS: Preset[] = [
         validate: checkPhone,
       },
     ],
+    describe: (v) => `Calls ${v.phone?.trim()}`,
     encode: (v) => {
       const n = digits(v.phone);
       if (!n) return "";
@@ -173,12 +179,19 @@ export const PRESETS: Preset[] = [
         label: "Password",
         inputType: "password",
         hidden: (v) => v.security === "nopass",
+        // WPA needs 8 to 63 characters; WEP keys are shorter, so only check WPA.
+        validate: (value) =>
+          value.length > 63 ? "That password is too long for Wi‑Fi." : undefined,
       },
     ],
     defaults: { security: "WPA" },
+    describe: (v) =>
+      `Joins the ${v.ssid} Wi‑Fi${v.security === "nopass" ? "" : " with its password"}`,
     encode: (v) => {
       if (!v.ssid) return "";
       const open = v.security === "nopass";
+      // A secured network can't be joined without its password.
+      if (!open && !v.password) return "";
       const password = open ? "" : `P:${wifiEscape(v.password ?? "")};`;
       return `WIFI:T:${v.security};S:${wifiEscape(v.ssid)};${password};`;
     },

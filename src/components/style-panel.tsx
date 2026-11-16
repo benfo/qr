@@ -1,7 +1,7 @@
 import { useQRCodeStore } from "../store/rq-code-store";
 import { DotStyle, eyeCentrePath, eyeFramePath, modulePath } from "./qr-svg";
 import { IconColorPicker } from "./icon-color-picker";
-import { focusRing, Label, Segmented } from "./ui";
+import { CustomSwatch, focusRing, Label, Segmented, Swatch } from "./ui";
 
 /** A small preview drawn with the same paths as the real code. */
 const Glyph = (props: { size: number; children: React.ReactNode }) => (
@@ -78,27 +78,14 @@ const luminance = (hex: string) => {
 
 const contrastOnWhite = (hex: string) => 1.05 / (luminance(hex) + 0.05);
 
-const ColorInput = (props: {
-  id: string;
-  value: string;
-  onChange: (value: string) => void;
-}) => (
-  <label className="flex h-10 cursor-pointer items-center gap-2 self-start rounded-md border border-ink/15 pl-2 pr-4 hover:bg-ink/5 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-accent">
-    <span
-      aria-hidden
-      className="size-6 rounded-sm ring-1 ring-inset ring-ink/15"
-      style={{ backgroundColor: props.value }}
-    />
-    <span className="font-mono text-meta uppercase">{props.value}</span>
-    <input
-      id={props.id}
-      type="color"
-      value={props.value}
-      onChange={(ev) => props.onChange(ev.target.value)}
-      className="sr-only"
-    />
-  </label>
-);
+// Dark enough to scan on white; anything else is one click away.
+const PALETTE = [
+  { color: "#000000", label: "Black" },
+  { color: "#1e3a8a", label: "Navy" },
+  { color: "#166534", label: "Forest green" },
+  { color: "#9f1239", label: "Wine red" },
+  { color: "#6b21a8", label: "Purple" },
+];
 
 export const StylePanel = () => {
   const {
@@ -128,8 +115,23 @@ export const StylePanel = () => {
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap gap-x-8 gap-y-4">
         <div className="flex flex-col gap-2">
-          <Label htmlFor="qr-color">Colour</Label>
-          <ColorInput id="qr-color" value={color} onChange={setColor} />
+          <Label>Colour</Label>
+          <div className="flex items-center gap-2">
+            {PALETTE.map((swatch) => (
+              <Swatch
+                key={swatch.color}
+                color={swatch.color}
+                label={swatch.label}
+                selected={color === swatch.color}
+                onClick={() => setColor(swatch.color)}
+              />
+            ))}
+            <CustomSwatch
+              value={color}
+              selected={!PALETTE.some((p) => p.color === color)}
+              onPick={setColor}
+            />
+          </div>
         </div>
 
         <div className="flex flex-col gap-2">
@@ -148,9 +150,9 @@ export const StylePanel = () => {
 
       <div className="flex flex-wrap gap-x-3 gap-y-4">
         <div className="flex flex-col gap-2">
-          <Label>Dots</Label>
+          <Label>Pattern</Label>
           <Segmented
-            label="Dots"
+            label="Pattern"
             value={dotStyle}
             options={dotOptions}
             onChange={setDotStyle}

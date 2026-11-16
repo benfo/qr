@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
 import { getPreset, hasProblem, PRESETS, PresetId } from "../presets";
 import type { DotStyle, EyeStyle } from "../components/qr-svg";
 
@@ -32,43 +33,64 @@ interface QRCodeState {
 }
 
 const initialValues = Object.fromEntries(
-  PRESETS.map((p) => [p.id, { ...p.defaults }])
+  PRESETS.map((p) => [p.id, { ...p.defaults }]),
 ) as Record<PresetId, Values>;
 
-export const useQRCodeStore = create<QRCodeState>((set) => ({
-  presetId: "link",
-  values: initialValues,
-  color: "#000000",
-  transparent: false,
-  showIcon: false,
-  iconColorMode: "brand",
-  iconCustomColor: "#000000",
-  dotStyle: "square",
-  eyeFrame: "square",
-  eyeCentre: "square",
-  setPreset: (presetId) => set({ presetId }),
-  setValue: (key, value) =>
-    set((state) => ({
-      values: {
-        ...state.values,
-        [state.presetId]: { ...state.values[state.presetId], [key]: value },
-      },
-    })),
-  setColor: (color) => set({ color }),
-  setTransparent: (transparent) => set({ transparent }),
-  setShowIcon: (showIcon) => set({ showIcon }),
-  setIconColorMode: (iconColorMode) =>
-    set((state) =>
-      // Start a custom colour from whatever the icon shows now.
-      iconColorMode === "custom" && state.iconColorMode !== "custom"
-        ? { iconColorMode, iconCustomColor: resolveIconColor(state) }
-        : { iconColorMode }
-    ),
-  setIconCustomColor: (iconCustomColor) => set({ iconCustomColor }),
-  setDotStyle: (dotStyle) => set({ dotStyle }),
-  setEyeFrame: (eyeFrame) => set({ eyeFrame }),
-  setEyeCentre: (eyeCentre) => set({ eyeCentre }),
-}));
+export const useQRCodeStore = create<QRCodeState>()(
+  persist(
+    (set) => ({
+      presetId: "link",
+      values: initialValues,
+      color: "#000000",
+      transparent: false,
+      showIcon: false,
+      iconColorMode: "brand",
+      iconCustomColor: "#000000",
+      dotStyle: "square",
+      eyeFrame: "square",
+      eyeCentre: "square",
+      setPreset: (presetId) => set({ presetId }),
+      setValue: (key, value) =>
+        set((state) => ({
+          values: {
+            ...state.values,
+            [state.presetId]: { ...state.values[state.presetId], [key]: value },
+          },
+        })),
+      setColor: (color) => set({ color }),
+      setTransparent: (transparent) => set({ transparent }),
+      setShowIcon: (showIcon) => set({ showIcon }),
+      setIconColorMode: (iconColorMode) =>
+        set((state) =>
+          // Start a custom colour from whatever the icon shows now.
+          iconColorMode === "custom" && state.iconColorMode !== "custom"
+            ? { iconColorMode, iconCustomColor: resolveIconColor(state) }
+            : { iconColorMode },
+        ),
+      setIconCustomColor: (iconCustomColor) => set({ iconCustomColor }),
+      setDotStyle: (dotStyle) => set({ dotStyle }),
+      setEyeFrame: (eyeFrame) => set({ eyeFrame }),
+      setEyeCentre: (eyeCentre) => set({ eyeCentre }),
+    }),
+    {
+      // Remember the look between visits, never what was typed.
+      name: "qr-style",
+      version: 1,
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({
+        presetId: state.presetId,
+        color: state.color,
+        transparent: state.transparent,
+        showIcon: state.showIcon,
+        iconColorMode: state.iconColorMode,
+        iconCustomColor: state.iconCustomColor,
+        dotStyle: state.dotStyle,
+        eyeFrame: state.eyeFrame,
+        eyeCentre: state.eyeCentre,
+      }),
+    },
+  ),
+);
 
 /** The string that ends up inside the QR code. */
 export const useEncodedValue = () =>
@@ -82,7 +104,7 @@ export const useEncodedValue = () =>
 /** True when a field the user can see needs fixing. */
 export const useHasProblem = () =>
   useQRCodeStore((state) =>
-    hasProblem(getPreset(state.presetId), state.values[state.presetId])
+    hasProblem(getPreset(state.presetId), state.values[state.presetId]),
   );
 
 /** "brand" uses the icon's own colour (WhatsApp green), else the code's. */
