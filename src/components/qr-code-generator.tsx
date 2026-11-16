@@ -1,12 +1,12 @@
-import { QRCodeSVG } from "qrcode.react";
+import { QRSvg } from "./qr-svg";
 
 import { getPreset } from "../presets";
 import { useEncodedValue, useQRCodeStore } from "../store/rq-code-store";
 import { forwardRef } from "react";
 
 const PLACEHOLDER = "https://benfo.github.io/qr/";
-const SIZE = 1000;
-const ICON_SIZE = 240;
+// Share of the code's width the centre icon takes up.
+const ICON_RATIO = 0.24;
 
 // Printer's crop marks at each corner of the sheet: a nod to where QR codes end up.
 const cropMarks = [
@@ -26,7 +26,8 @@ const checker = {
 
 export const QRCodeGenerator = forwardRef<HTMLDivElement>((props, ref) => {
   const value = useEncodedValue();
-  const { presetId, color, transparent, showIcon } = useQRCodeStore();
+  const { presetId, color, transparent, showIcon, dotStyle } =
+    useQRCodeStore();
   const isEmpty = value.length === 0;
 
   const iconSrc = showIcon
@@ -52,28 +53,14 @@ export const QRCodeGenerator = forwardRef<HTMLDivElement>((props, ref) => {
           }`}
         >
           <div ref={ref} {...props}>
-            <QRCodeSVG
+            <QRSvg
               value={isEmpty ? PLACEHOLDER : value}
-              marginSize={1}
-              size={SIZE}
-              fgColor={color}
-              bgColor={transparent ? "transparent" : "#FFFFFF"}
-              level={iconSrc ? "H" : "L"}
-              imageSettings={
-                iconSrc
-                  ? {
-                      src: iconSrc,
-                      width: ICON_SIZE,
-                      height: ICON_SIZE,
-                      excavate: true,
-                    }
-                  : undefined
-              }
+              color={color}
+              background={transparent ? undefined : "#FFFFFF"}
+              dotStyle={dotStyle}
+              icon={iconSrc ? { src: iconSrc, ratio: ICON_RATIO } : undefined}
               title={isEmpty ? undefined : `QR code for ${value}`}
-              style={{
-                width: "100%",
-                height: "100%",
-              }}
+              style={{ width: "100%", height: "100%" }}
             />
           </div>
         </div>

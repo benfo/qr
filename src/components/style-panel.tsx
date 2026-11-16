@@ -20,6 +20,8 @@ export const StylePanel = () => {
     setTransparent,
     showIcon,
     setShowIcon,
+    dotStyle,
+    setDotStyle,
   } = useQRCodeStore();
 
   const tooLight = contrastOnWhite(color) < 4;
@@ -62,6 +64,20 @@ export const StylePanel = () => {
               { value: "transparent", label: "Transparent" },
             ]}
             onChange={(v) => setTransparent(v === "transparent")}
+          />
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <Label>Dots</Label>
+          <Segmented
+            label="Dots"
+            value={dotStyle}
+            options={[
+              { value: "square", label: "Square" },
+              { value: "rounded", label: "Rounded" },
+              { value: "dots", label: "Dots" },
+            ]}
+            onChange={setDotStyle}
           />
         </div>
       </div>

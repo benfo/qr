@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { getPreset, PRESETS, PresetId } from "../presets";
+import type { DotStyle } from "../components/qr-svg";
 
 type Values = Record<string, string>;
 
@@ -9,11 +10,13 @@ interface QRCodeState {
   color: string;
   transparent: boolean;
   showIcon: boolean;
+  dotStyle: DotStyle;
   setPreset: (id: PresetId) => void;
   setValue: (key: string, value: string) => void;
   setColor: (color: string) => void;
   setTransparent: (transparent: boolean) => void;
   setShowIcon: (showIcon: boolean) => void;
+  setDotStyle: (dotStyle: DotStyle) => void;
 }
 
 const initialValues = Object.fromEntries(
@@ -26,6 +29,7 @@ export const useQRCodeStore = create<QRCodeState>((set) => ({
   color: "#000000",
   transparent: false,
   showIcon: false,
+  dotStyle: "square",
   setPreset: (presetId) => set({ presetId }),
   setValue: (key, value) =>
     set((state) => ({
@@ -37,6 +41,7 @@ export const useQRCodeStore = create<QRCodeState>((set) => ({
   setColor: (color) => set({ color }),
   setTransparent: (transparent) => set({ transparent }),
   setShowIcon: (showIcon) => set({ showIcon }),
+  setDotStyle: (dotStyle) => set({ dotStyle }),
 }));
 
 /** The string that ends up inside the QR code. */
